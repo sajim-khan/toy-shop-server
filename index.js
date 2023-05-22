@@ -1,8 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion } = require("mongodb");
-require("dotenv").config();
+
 const app = express();
 const port = 5000;
 
@@ -10,9 +9,8 @@ const port = 5000;
 app.use(cors());
 app.use(express.json());
 
-
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.scgvwg0.mongodb.net/?retryWrites=true&w=majority`;
-console.log(uri);
+const uri =
+  "mongodb+srv://toymarket:npywgQ06NOr8bXoy@cluster0.scgvwg0.mongodb.net/?retryWrites=true&w=majority";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -27,27 +25,30 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-    
-    
-    const toyCollection = client.db("toyStore").collection("toys");
-    
-    app.post("/toy", async (req, res) => {
-      const toy = req.body;
-      console.log(toy);
-      const result = await toyCollection.insertOne(toy);
-      res.send(result);
+
+    // const toysStoreCollection = client.db("").collection("toys");
+
+    const toysCollections = client.db("toysStoreDB").collection("toys");
+
+    app.get("/toys", async (req, res) => {
+      const data = await toysCollections.find().toArray();
+      res.send(data);
     });
-    
-    
-    
+
+
+
+
+
+
+
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    //await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
   } finally {
     // Ensures that the client will close when you finish/error
-    await client.close();
+    // await client.close();
   }
 }
 run().catch(console.dir);
@@ -59,5 +60,3 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`Toy marketplace is running on port ${port}`);
 });
-
-
