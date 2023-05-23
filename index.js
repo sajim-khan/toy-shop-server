@@ -21,6 +21,8 @@ const client = new MongoClient(uri, {
   },
 });
 
+
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -68,7 +70,7 @@ async function run() {
       res.send(result);
     });
 
-    //delete
+    //for delete operation
     app.delete("/addtoys/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -76,6 +78,38 @@ async function run() {
 
       res.send(result);
     });
+    
+    
+    // for update data
+    app.patch("/addtoys/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedToy = req.body;
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          price: updatedToy.price,
+          available: updatedToy.available,
+          details: updatedToy.details,
+        },
+      };
+      const result = await addToysDataCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.send({ modifiedCount: result.modifiedCount });
+    });
+    
+    app.get("/updateData", async (req, res) => {
+      let query = {};
+      if (req.query?._id) {
+        query = { _id: new ObjectId(req.query._id) };
+      }
+      const result = await addToysDataCollection.find(query).toArray();
+      res.send(result);
+    });
+    
     // Send a ping to confirm a successful connection
     //await client.db("admin").command({ ping: 1 });
     console.log(
@@ -95,3 +129,5 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`Toy marketplace is running on port ${port}`);
 });
+
+
