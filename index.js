@@ -1,16 +1,16 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
-
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+require("dotenv").config();
 const app = express();
-const port = 5000;
-
+const port = process.env.PORT || 5000;
 //middleware
 app.use(cors());
 app.use(express.json());
 
-const uri =
-  "mongodb+srv://toymarket:npywgQ06NOr8bXoy@cluster0.scgvwg0.mongodb.net/?retryWrites=true&w=majority";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.scgvwg0.mongodb.net/?retryWrites=true&w=majority`;
+
+console.log(uri);
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -27,20 +27,55 @@ async function run() {
     await client.connect();
 
     // const toysStoreCollection = client.db("").collection("toys");
+    const addToysDataCollection = client.db("addToysDB").collection("addtoys");
 
     const toysCollections = client.db("toysStoreDB").collection("toys");
 
+    //  get data from collections
     app.get("/toys", async (req, res) => {
       const data = await toysCollections.find().toArray();
       res.send(data);
     });
 
+    // CRUD OPERATION- Post -method here
+    app.post("/addtoys", async (req, res) => {
+      const addToys = req.body;
+      const result = await addToysDataCollection.insertOne(addToys);
+      res.send(result);
+    });
 
+    // ----------------------
 
+    app.get("/addtoys", async (req, res) => {
+      const data = await addToysDataCollection.find().toArray();
+      res.send(data);
+    });
 
+    //  here is query using email
+    app.get("/addtoys/email/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
 
+      const result = await addToysDataCollection.find(query).toArray();
+      res.send(result);
+    });
 
+    // here is crud operation delete method for single details
+    app.get("/addtoys/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await addToysDataCollection.findOne(query);
+      res.send(result);
+    });
 
+    //delete
+    app.delete("/addtoys/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await addToysDataCollection.deleteOne(query);
+
+      res.send(result);
+    });
     // Send a ping to confirm a successful connection
     //await client.db("admin").command({ ping: 1 });
     console.log(
